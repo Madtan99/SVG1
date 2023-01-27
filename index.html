@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="graphContainer" style="margin:auto;">
+        <h1>Ventes 2022</h1>
+    </div>
+    <script defer>
+        const svgns = "http://www.w3.org/2000/svg";
+        let viewPortMaxUnitX = 1000;
+        let viewPortMaxUnitY = 1000;
+        let viewport = null;
+        init_UI();
+        function init_UI() {
+            insertViewPort("graphContainer");
+            //demoShapes();
+            drawShapes();
+        }
+        function insertViewPort(containerId) {
+            viewport = document.createElementNS(svgns, "svg");
+            viewport.setAttribute("id", "viewport");
+            viewport.setAttribute("viewBox", "0 0 " + viewPortMaxUnitX + " " + viewPortMaxUnitY);
+            document.getElementById(containerId).appendChild(viewport);
+        }
+        function demoShapes() {
+            viewport.appendChild(line(20, 20, 400, 200, 'green', 15))
+            viewport.appendChild(line(20, 20, 400, 150, 'red', 15))
+            viewport.appendChild(line(20, 20, 400, 100, 'blue', 15))
+            viewport.appendChild(line(20, 20, 400, 50, 'orange', 15))
+            viewport.appendChild(rect(500, 20, 300, 200, 'orange', 'yellow', 15))
+            viewport.appendChild(rect(500, 300, 300, 200, 'magenta', 'cyan', 15))
+            let gray;
+            for (let angle = 360; angle >= 0; angle -= 15) {
+                gray = angle / 360 * 255;
+                viewport.appendChild(text(220, 400, 'Bonjour', angle, 4, `rgb(${gray}, ${gray}, ${gray})`))
+            }
+        }
+
+        function drawShapes() {
+            let gray = 0;
+
+            let mois = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+            let ventes = [6500, 5550, 4200, 4525, 2500, 1500, 500, 1000, 1750, 2300, 3700, 3500];
+
+            let numColumns = 0;
+            let maxVente = 0;
+            let columnIncrement = 1000;
+
+            let pixelsPerColumn = 50;
+            let pixelsPerRow = 40;
+            let ventesSpacing = 5;
+            let rectanglesSpacingLeft = 70;
+            let linesSpacingLeft = 60;
+
+            for (let index = 0; index < ventes.length; index++) {
+                const element = ventes[index];
+                if (element > maxVente) {
+                    maxVente = element;
+                }
+            }
+
+            numColumns = Math.floor((maxVente + columnIncrement) / columnIncrement);
+
+            const linesPerColumn = 10;
+            const lineWidth = ventes.length * (pixelsPerRow + ventesSpacing) + linesSpacingLeft + (rectanglesSpacingLeft - linesSpacingLeft) * 2
+
+            var y;
+            for (let index = 1; index < (numColumns + 1); index++) {
+                viewport.appendChild(text(0, pixelsPerColumn * (1 + numColumns - index), "$ " + columnIncrement * index, 0, 1, `rgb(${gray}, ${gray}, ${gray})`));
+
+                y = index * pixelsPerColumn;
+                viewport.appendChild(line(linesSpacingLeft, y, lineWidth, y, "black", 1));
+
+                for (let index2 = 1; index2 < linesPerColumn; index2++) {
+                    y = index * pixelsPerColumn + index2 * pixelsPerColumn / linesPerColumn;
+                    viewport.appendChild(line(linesSpacingLeft, y, lineWidth, y, "black", .25));
+                }
+            }
+            y = (numColumns + 1) * pixelsPerColumn;
+            viewport.appendChild(line(linesSpacingLeft, y, lineWidth, y, "black", 2));
+            const textHeightBuffer = 5;
+            const topSpaceMois = 15;
+            for (let index = 0; index < ventes.length; index++) {
+                const vente = ventes[index];
+                var height = pixelsPerColumn * vente / columnIncrement;
+                var color = "green";
+                if (vente <= 1000) {
+                    color = "red";
+                }
+                else if (vente < 2500) {
+                    color = "orange";
+                }
+                else if (vente < 4500) {
+                    color = "yellow";
+                }
+                viewport.appendChild(rect(rectanglesSpacingLeft + (pixelsPerRow + ventesSpacing) * index, (numColumns + 1) * pixelsPerColumn - height, pixelsPerRow, height, color, "black", 1));
+                viewport.appendChild(text(rectanglesSpacingLeft + (pixelsPerRow + ventesSpacing) * index, (numColumns + 1) * pixelsPerColumn - height - textHeightBuffer, "$" + vente, 0, 1, "black"));
+            }
+            for (let index = 0; index < mois.length; index++) {
+                const leMois = mois[index];
+                var spacingTop = pixelsPerColumn * numColumns;
+                viewport.appendChild(text(rectanglesSpacingLeft + (pixelsPerRow + ventesSpacing) * index, (numColumns + 1) * pixelsPerColumn + topSpaceMois, leMois, 45, 1, "black"));
+            }
+        }
+
+        function line(x1, y1, x2, y2, stroke = "black", strokeWidth = 1) {
+            let line = document.createElementNS(svgns, "line");
+            line.setAttribute("x1", x1); line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2); line.setAttribute("y2", y2);
+            line.setAttribute("stroke", stroke);
+            line.setAttribute("stroke-width", strokeWidth);
+            return line;
+        }
+        function rect(x, y, width, height, fill = "white", stroke = "black", strokeWidth = 1) {
+            let rect = document.createElementNS(svgns, "rect");
+            rect.setAttribute("x", x); rect.setAttribute("y", y);
+            rect.setAttribute("width", width); rect.setAttribute("height", height);
+            rect.setAttribute("fill", fill); rect.setAttribute("stroke", stroke);
+            rect.setAttribute("stroke-width", strokeWidth);
+            return rect;
+        }
+        function text(x, y, content, angle = 0, size = "1", fill = "black") {
+            let text = document.createElementNS(svgns, "text");
+            text.setAttribute("x", x); text.setAttribute("y", y);
+            text.setAttribute("transform", `rotate(${angle},${x},${y})`);
+            text.setAttribute("font-size", size + "em");
+            text.setAttribute("fill", fill);
+            text.innerHTML = content;
+            return text;
+        }
+    </script>
+</body>
+
+</html>
